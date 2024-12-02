@@ -64,7 +64,7 @@ try:
         else:
             print("NOT DETECTED")
             # Rotate the robot if no bottle is detected
-            arduino.write("1000\n".encode())  # Arbitrary large error to induce rotation
+            arduino.write("300\n".encode())  # Arbitrary large error to induce rotation
             time.sleep(0.05)
 
         # Read the PID error sent back from Arduino
