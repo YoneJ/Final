@@ -63,7 +63,7 @@ try:
             arduino.write(str(1000).encode())  # Arbitrary large error to induce rotation
 
         # Display the frame with the detected bottle and center
-        cv2.imshow('Green Bottle Detection', frame)
+        # cv2.imshow('Green Bottle Detection', frame)
 
         # Optionally, add a short delay to make the loop smoother
         time.sleep(0.1)
