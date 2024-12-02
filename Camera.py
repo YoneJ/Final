@@ -26,46 +26,64 @@ try:
         if not ret:
             print("Failed to grab frame")
             break
-
+        
         # Convert the frame to HSV
         hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-
+        
         # Create a mask for the green color
         green_mask = cv2.inRange(hsv_frame, lower_green, upper_green)
 
-        # Apply morphological transformations to clean up the mask
-        kernel = np.ones((15, 15), np.uint8)
-        green_mask = cv2.morphologyEx(green_mask, cv2.MORPH_CLOSE, kernel)
+        # Check if green is detected
+        if cv2.countNonZero(green_mask) > 0:
+            # Stop the robot when green is detected
+            arduino.write(b"stop\n")
+            print("Green detected, stopping the robot.")
 
-        # Find contours in the cleaned-up mask
-        contours, _ = cv2.findContours(green_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
-        if contours:
-            largest_contour = max(contours, key=cv2.contourArea)
-            x, y, w, h = cv2.boundingRect(largest_contour)
-
-            # Calculate the center of the bounding box
-            center_x = x + w // 2
-            center_y = y + h // 2
-
-            # Calculate the error (difference between the center of the frame and the center of the contour)
-            frame_center = frame.shape[1] // 2
-            error = center_x - frame_center
-
-            # Send the error to Arduino
-            arduino.write(f"{error}\n".encode())
-            time.sleep(0.05)
-            received_error = arduino.readline().decode().strip()
-            print("RECEIVED: ", received_error)
+            # Apply morphological transformations to clean up the mask
+            kernel = np.ones((15, 15), np.uint8)
+            green_mask = cv2.morphologyEx(green_mask, cv2.MORPH_CLOSE, kernel)
+    
             
-            # Draw the bounding box and the center point
-            cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-            cv2.circle(frame, (center_x, center_y), 5, (0, 0, 255), -1)
+            
+            # Find contours in the cleaned-up mask
+            contours, _ = cv2.findContours(green_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    
+            if contours:
+                largest_contour = max(contours, key=cv2.contourArea)
+                x, y, w, h = cv2.boundingRect(largest_contour)
+    
+                # Calculate the center of the bounding box
+                center_x = x + w // 2
+                center_y = y + h // 2
+    
+                
+                
+                # Calculate the error (difference between the center of the frame and the center of the contour)
+                frame_center = frame.shape[1] // 2
+                error = center_x - frame_center
+                print(error)
+                # Send the error to Arduino
+                arduino.write(f"{error}\n".encode())
+                # time.sleep(0.05)
+                received_error = arduino.readline().decode().strip()
+                print("RECEIVED: ", received_error)
+                
+                # Draw the bounding box and the center point
+                cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+                cv2.circle(frame, (center_x, center_y), 5, (0, 0, 255), -1)
+            else:
+                print("NOT DETECTED")
+                # Rotate the robot if no bottle is detected
+                arduino.write("350\n".encode())  # Arbitrary large error to induce rotation
+                # time.sleep(0.05)
+
+        
         else:
             print("NOT DETECTED")
-            # Rotate the robot if no bottle is detected
-            arduino.write("300\n".encode())  # Arbitrary large error to induce rotation
-            time.sleep(0.05)
+            # Rotate the robot if no green is detected
+            arduino.write("350\n".encode())  # Arbitrary large error to induce rotation
+        
+        
 
         # Read the PID error sent back from Arduino
         # if arduino.in_waiting > 0:
