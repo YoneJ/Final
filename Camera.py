@@ -43,8 +43,6 @@ try:
             kernel = np.ones((15, 15), np.uint8)
             green_mask = cv2.morphologyEx(green_mask, cv2.MORPH_CLOSE, kernel)
     
-            
-            
             # Find contours in the cleaned-up mask
             contours, _ = cv2.findContours(green_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     
@@ -56,40 +54,22 @@ try:
                 center_x = x + w // 2
                 center_y = y + h // 2
     
-                
-                
                 # Calculate the error (difference between the center of the frame and the center of the contour)
                 frame_center = frame.shape[1] // 2
                 error = center_x - frame_center
                 print(error)
                 # Send the error to Arduino
                 arduino.write(f"{error}\n".encode())
-                # time.sleep(0.05)
                 received_error = arduino.readline().decode().strip()
                 print("RECEIVED: ", received_error)
                 
                 # Draw the bounding box and the center point
                 cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
                 cv2.circle(frame, (center_x, center_y), 5, (0, 0, 255), -1)
-            else:
-                print("NOT DETECTED")
-                # Rotate the robot if no bottle is detected
-                arduino.write("350\n".encode())  # Arbitrary large error to induce rotation
-                # time.sleep(0.05)
-
-        
         else:
             print("NOT DETECTED")
-            # Rotate the robot if no green is detected
             arduino.write("350\n".encode())  # Arbitrary large error to induce rotation
         
-        
-
-        # Read the PID error sent back from Arduino
-        # if arduino.in_waiting > 0:
-        #     received_error = arduino.readline().decode().strip()
-        #     print(f"Received PID Error: {received_error}")
-
         # Optionally, add a short delay to make the loop smoother
         time.sleep(0.1)
 
