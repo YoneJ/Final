@@ -44,7 +44,6 @@ try:
                 found_green = True
                 time.sleep(1)  # Give the robot some time to stop
             else:
-                # Continue with PID control
                 # Apply morphological transformations to clean up the mask
                 kernel = np.ones((15, 15), np.uint8)
                 green_mask = cv2.morphologyEx(green_mask, cv2.MORPH_CLOSE, kernel)
