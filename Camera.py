@@ -4,7 +4,7 @@ import serial
 import time
 
 # Setup serial connection to Arduino
-arduino = serial.Serial(port='/dev/ttyUSB0', baudrate=115200, timeout=1)
+arduino = serial.Serial(port='/dev/ttyUSB0', baudrate=9600, timeout=1)
 time.sleep(2)  # Wait for the connection to be established
 
 # Adjusted HSV range for green
