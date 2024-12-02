@@ -20,7 +20,7 @@ float error = 0, P = 0, I = 0, D = 0, PID_value = 0;
 float previous_error = 0;
 
 // Initial motor speed
-int initial_motor_speed = 55;
+int initial_motor_speed = 90;
 
 void setup() {
   Serial.begin(9600);
