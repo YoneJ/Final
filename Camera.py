@@ -4,7 +4,7 @@ import serial
 import time
 
 # Setup serial connection to Arduino
-arduino = serial.Serial(port='/dev/ttyUSB0', baudrate=9600, timeout=1)
+arduino = serial.Serial(port='/dev/ttyUSB0', baudrate=9600, timeout=.1)
 time.sleep(2)  # Wait for the connection to be established
 
 # Adjusted HSV range for green
@@ -54,18 +54,23 @@ try:
 
             # Send the error to Arduino
             arduino.write(f"{error}\n".encode())
-
+            time.sleep(0.05)
+            received_error = arduino.readline().decode().strip()
+            print("RECEIVED: ", received_error)
+            
             # Draw the bounding box and the center point
             cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
             cv2.circle(frame, (center_x, center_y), 5, (0, 0, 255), -1)
         else:
+            print("NOT DETECTED")
             # Rotate the robot if no bottle is detected
             arduino.write("1000\n".encode())  # Arbitrary large error to induce rotation
+            time.sleep(0.05)
 
         # Read the PID error sent back from Arduino
-        if arduino.in_waiting > 0:
-            received_error = arduino.readline().decode().strip()
-            print(f"Received PID Error: {received_error}")
+        # if arduino.in_waiting > 0:
+        #     received_error = arduino.readline().decode().strip()
+        #     print(f"Received PID Error: {received_error}")
 
         # Optionally, add a short delay to make the loop smoother
         time.sleep(0.1)
