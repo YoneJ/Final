@@ -20,6 +20,35 @@ if not cap.isOpened():
 
 found_green = False
 
+# PID constants (tune these values for better control)
+Kp = 1.0  # Proportional gain
+Ki = 0.0  # Integral gain
+Kd = 0.0  # Derivative gain
+
+# PID variables
+previous_error = 0
+integral = 0
+
+# Function to compute PID
+def compute_pid(error):
+    global previous_error, integral
+
+    # Proportional term
+    P = Kp * error
+
+    # Integral term
+    integral += error
+    I = Ki * integral
+
+    # Derivative term
+    D = Kd * (error - previous_error)
+
+    # Update previous error for next iteration
+    previous_error = error
+
+    # Total PID output
+    return P + I + D
+
 try:
     while True:
         # Capture frame-by-frame
@@ -62,21 +91,28 @@ try:
                     # Calculate the error (difference between the center of the frame and the center of the contour)
                     frame_center = frame.shape[1] // 2
                     error = center_x - frame_center
-                    print(error)
-                    # Send the error to Arduino
-                    arduino.write(f"{error}\n".encode())
-                    received_error = arduino.readline().decode().strip()
-                    print("RECEIVED: ", received_error)
-                    
+                    print(f"Error: {error}")
+
+                    # Compute PID to determine robot movement
+                    pid_output = compute_pid(error)
+                    print(f"PID Output: {pid_output}")
+
+                    # Send the PID output to Arduino to adjust robot movement
+                    arduino.write(f"{pid_output}\n".encode())
+
                     # Draw the bounding box and the center point
                     cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
                     cv2.circle(frame, (center_x, center_y), 5, (0, 0, 255), -1)
-        else:
-            print("NOT DETECTED")
-            if not found_green:
-                # Rotate the robot if no green is detected
-                arduino.write("350\n".encode())  # Arbitrary large error to induce rotation
         
+        else:
+            print("Green not detected")
+            if not found_green:
+                # Rotate the robot until green is detected
+                arduino.write("350\n".encode())  # Arbitrary large error to induce rotation
+            else:
+                # Once green is found, keep moving toward it
+                arduino.write("0\n".encode())  # Placeholder to keep moving forward; adjust as needed
+
         # Optionally, add a short delay to make the loop smoother
         time.sleep(0.1)
 
