@@ -42,6 +42,7 @@ void setup() {
 void loop() {
   if (Serial.available()) {
     error = Serial.parseFloat();
+    Serial.println(error); // Send the error back to Raspberry Pi
     calculate_pid(error);
     motor_control();
   }
@@ -74,7 +75,4 @@ void motor_control() {
 
   analogWrite(enL, left_motor_speed);  // Set left motor speed
   analogWrite(enR, right_motor_speed); // Set right motor speed
-
-  Serial.print("Left Speed: "); Serial.print(left_motor_speed);
-  Serial.print(" | Right Speed: "); Serial.println(right_motor_speed);
 }
