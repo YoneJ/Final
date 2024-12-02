@@ -90,7 +90,7 @@ try:
         
                     # Calculate the error (difference between the center of the frame and the center of the contour)
                     frame_center = frame.shape[1] // 2
-                    error = center_x - frame_center
+                    error = (center_x - frame_center)/10
                     print(f"Error: {error}")
 
                     # Compute PID to determine robot movement
