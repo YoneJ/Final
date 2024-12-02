@@ -53,6 +53,7 @@ try:
             error = center_x - frame_center
 
             # Send the error to Arduino
+            print(error)
             arduino.write(str(error).encode())
 
             # Draw the bounding box and the center point
