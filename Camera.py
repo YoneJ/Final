@@ -21,7 +21,7 @@ if not cap.isOpened():
 found_green = False
 
 # PID constants (tune these values for better control)
-Kp = 3.0  # Proportional gain
+Kp = 1.5  # Proportional gain
 Ki = 0.02  # Integral gain
 Kd = 0.5  # Derivative gain
 
