@@ -71,7 +71,7 @@ try:
                 arduino.write(b"stop\n")
                 print("Green detected, stopping the robot.")
                 found_green = True
-                time.sleep(1)  # Give the robot some time to stop
+                time.sleep(5)  # Give the robot some time to stop
             else:
                 # Apply morphological transformations to clean up the mask
                 kernel = np.ones((15, 15), np.uint8)
