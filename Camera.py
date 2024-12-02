@@ -108,7 +108,7 @@ try:
             print("Green not detected")
             if not found_green:
                 # Rotate the robot until green is detected
-                arduino.write("350\n".encode())  # Arbitrary large error to induce rotation
+                arduino.write("35\n".encode())  # Arbitrary large error to induce rotation
             else:
                 # Once green is found, keep moving toward it
                 arduino.write("0\n".encode())  # Placeholder to keep moving forward; adjust as needed
