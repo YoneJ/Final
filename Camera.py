@@ -42,6 +42,7 @@ try:
                 arduino.write(b"stop\n")
                 print("Green detected, stopping the robot.")
                 found_green = True
+                time.sleep(1)  # Give the robot some time to stop
             else:
                 # Continue with PID control
                 # Apply morphological transformations to clean up the mask
