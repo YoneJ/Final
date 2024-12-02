@@ -53,18 +53,19 @@ try:
             error = center_x - frame_center
 
             # Send the error to Arduino
-            # print(error)
-            arduino.write(str(error).encode())
+            arduino.write(f"{error}\n".encode())
 
             # Draw the bounding box and the center point
             cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
             cv2.circle(frame, (center_x, center_y), 5, (0, 0, 255), -1)
         else:
             # Rotate the robot if no bottle is detected
-            arduino.write(str(1000).encode())  # Arbitrary large error to induce rotation
+            arduino.write("1000\n".encode())  # Arbitrary large error to induce rotation
 
-        # Display the frame with the detected bottle and center
-        # cv2.imshow('Green Bottle Detection', frame)
+        # Read the PID error sent back from Arduino
+        if arduino.in_waiting > 0:
+            received_error = arduino.readline().decode().strip()
+            print(f"Received PID Error: {received_error}")
 
         # Optionally, add a short delay to make the loop smoother
         time.sleep(0.1)
