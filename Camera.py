@@ -11,6 +11,8 @@ time.sleep(2)  # Wait for the connection to be established
 # Adjusted HSV range for green
 lower_green = np.array([35, 100, 50])
 upper_green = np.array([85, 255, 255])
+# My idea: Đoạn này mai anh cap màn hình 2 tấm ảnh, 1 tấm xa 1 tấm gần rồi ném vào canva, chấm màu rồi đổi màu RGB -> HSV nhé
+# Sâu sắc hơn thì có thread này: https://stackoverflow.com/questions/47483951/how-can-i-define-a-threshold-value-to-detect-only-green-colour-objects-in-an-ima/47483966#47483966
 
 # Open the camera
 cap = cv2.VideoCapture(0)
@@ -69,6 +71,63 @@ try:
 
         # Check if green is detected
         if cv2.countNonZero(green_mask) > 0:
+            """
+            Lỗi hiện tại em thấy: 
+            
+                - detection_phase đang làm một cái biến để ngăn màu xanh xuất hiện, ảnh hưởng tới trạng thái sau khi thấy màu xanh
+                nhưng boolean khó kiểm soát, dễ bị kẹt loop, không scalable nếu viết thêm code cho task sau,
+                điều kiện của boolean lại quá đơn giản nên để thực hiện các task sau boolean sẽ bị conflict
+                - (cái này không đọc cũng được) tuy nhiên ưu điểm của boolean là đơn giản nên những task đơn giản mà không yêu cầu
+                thêm điều kiện/task sau thì e recommend dùng boolean vì nó không bị overkill nhé
+            
+            Đề xuất của em: 
+            
+                - Cách 1 viết enum phases: để switch từ case thấy màu xanh -> case dừng lại -> case bounding box, tìm điểm chính giữa...
+                    Code có thể sẽ trông ntn (hoặc hông ai bít): 
+
+                    green_detected = True;
+                    
+                    if state == "SEARCH GREEN" 
+                        thực hiện phase tìm màu xanh
+                        if green_detected: 
+                            state = "STOP"
+                            
+                    elif state == "STOP" 
+                        dừng lại
+                        state == "GO TOWARD GREEN"
+                        
+                    elif state == "GO TOWARD GREEN"
+                    ...
+                    
+                - Cách 2 là viết finite state machine
+                    class RobotFSM:
+                        def __init__(self):
+                            self.state = "SEARCHING"
+                    
+                        def on_green_detected(self):
+                            if self.state == "SEARCHING":
+                                self.state = "WAITING"
+                                print("Green detected. Switching to WAITING.")
+                                self.start_time = time.time()
+                    
+                        def on_timer_expired(self):
+                            if self.state == "WAITING":
+                                self.state = "PROCESSING"
+                                print("Timer expired. Switching to PROCESSING.")
+                    
+                        def execute(self):
+                            if self.state == "SEARCHING":
+                                print("Searching for green.")
+                            elif self.state == "WAITING":
+                                if time.time() - self.start_time > 2:
+                                    self.on_timer_expired()
+                            elif self.state == "PROCESSING":
+                                print("Processing detected green area.")
+
+                - FSM với enum nhìn thì hơi giống nhau nhưng khác ở chỗ là mỗi cách dùng một cách quản lý dữ liệu khác nhau,
+                cá nhân em thấy FSM phù hợp hơn vì nó quản lý được nhiều biến độc lập, centralized hơn, điều kiện
+                thực hiện và điều kiện nhảy state được quản lý riêng chứ không bị mixed như switch case/enum. 
+            """
             if detection_phase:
                 # Stop the robot when green is detected for the first time
                 arduino.write(struct.pack('f', -1.0))
