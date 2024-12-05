@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import serial
 import time
+import struct
 
 # Setup serial connection to Arduino
 arduino = serial.Serial(port='/dev/ttyUSB0', baudrate=9600, timeout=0.1)
@@ -18,8 +19,6 @@ if not cap.isOpened():
     print("Error: Could not open camera.")
     exit()
 
-found_green = False
-
 # PID constants (tune these values for better control)
 Kp = 1.5  # Proportional gain
 Ki = 0.02  # Integral gain
@@ -28,6 +27,10 @@ Kd = 0.5  # Derivative gain
 # PID variables
 previous_error = 0
 integral = 0
+
+# Timer variable
+start_time = time.time()
+detection_phase = True
 
 # Function to compute PID
 def compute_pid(error):
@@ -66,55 +69,60 @@ try:
 
         # Check if green is detected
         if cv2.countNonZero(green_mask) > 0:
-            if not found_green:
+            if detection_phase:
                 # Stop the robot when green is detected for the first time
-                arduino.write(b"stop\n")
+                arduino.write(struct.pack('f', -1.0))
                 print("Green detected, stopping the robot.")
-                found_green = True
-                time.sleep(5)  # Give the robot some time to stop
+                detection_phase = False
+                start_time = time.time()  # Record the time of detection
             else:
-                # Apply morphological transformations to clean up the mask
-                kernel = np.ones((15, 15), np.uint8)
-                green_mask = cv2.morphologyEx(green_mask, cv2.MORPH_CLOSE, kernel)
-        
-                # Find contours in the cleaned-up mask
-                contours, _ = cv2.findContours(green_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        
-                if contours:
-                    largest_contour = max(contours, key=cv2.contourArea)
-                    x, y, w, h = cv2.boundingRect(largest_contour)
-        
-                    # Calculate the center of the bounding box
-                    center_x = x + w // 2
-                    center_y = y + h // 2
-        
-                    # Calculate the error (difference between the center of the frame and the center of the contour)
-                    frame_center = frame.shape[1] // 2
-                    error = (center_x - frame_center)/10
-                    print(f"Error: {error}")
+                if time.time() - start_time > 2:  # Wait for 2 seconds
+                    # Apply morphological transformations to clean up the mask
+                    kernel = np.ones((15, 15), np.uint8)
+                    green_mask = cv2.morphologyEx(green_mask, cv2.MORPH_CLOSE, kernel)
+            
+                    # Find contours in the cleaned-up mask
+                    contours, _ = cv2.findContours(green_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            
+                    if contours:
+                        largest_contour = max(contours, key=cv2.contourArea)
+                        x, y, w, h = cv2.boundingRect(largest_contour)
+            
+                        # Calculate the center of the bounding box
+                        center_x = x + w // 2
+                        center_y = y + h // 2
+            
+                        # Calculate the error (difference between the center of the frame and the center of the contour)
+                        frame_center = frame.shape[1] // 2
+                        error = (center_x - frame_center) / 10
+                        print(f"Error: {error}")
 
-                    # Compute PID to determine robot movement
-                    pid_output = compute_pid(error)
-                    print(f"PID Output: {pid_output}")
+                        # Compute PID to determine robot movement
+                        pid_output = compute_pid(error)
+                        print(f"PID Output: {pid_output}")
 
-                    # Send the PID output to Arduino to adjust robot movement
-                    arduino.write(f"{pid_output}\n".encode())
+                        # Send the PID output to Arduino to adjust robot movement
+                        arduino.write(struct.pack('f', pid_output))
+                        received_pid = arduino.readline().decode().strip()
+                        print(received_pid)
+                        received_left = arduino.readline().decode().strip()
+                        print(received_left)
+                        received_right = arduino.readline().decode().strip()
+                        print(received_right)
 
-                    # Draw the bounding box and the center point
-                    cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-                    cv2.circle(frame, (center_x, center_y), 5, (0, 0, 255), -1)
-        
+                        # Draw the bounding box and the center point
+                        cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+                        cv2.circle(frame, (center_x, center_y), 5, (0, 0, 255), -1)
+
         else:
             print("Green not detected")
-            if not found_green:
+            if detection_phase:
                 # Rotate the robot until green is detected
-                arduino.write("35\n".encode())  # Arbitrary large error to induce rotation
-            else:
-                # Once green is found, keep moving toward it
-                arduino.write("0\n".encode())  # Placeholder to keep moving forward; adjust as needed
+                arduino.write(struct.pack('f', 100.0))  # Arbitrary large error to induce rotation
 
         # Optionally, add a short delay to make the loop smoother
         time.sleep(0.1)
+        cv2.imshow('Green Detection with Boundary and Center', frame)
 
 except KeyboardInterrupt:
     print("Stopped by user")
