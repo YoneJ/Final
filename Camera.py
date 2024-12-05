@@ -120,7 +120,7 @@ try:
                             if self.state == "SEARCHING":
                                 print("Searching for green.")
                             elif self.state == "WAITING":
-                                if time.time() - self.start_time > 2:
+                                if time.time() - self.start_time > 2: (đoạn timer em làm theo anh hết)
                                     self.on_timer_expired()
                             elif self.state == "PROCESSING":
                                 print("Processing detected green area.")
