@@ -16,7 +16,7 @@ float previous_error = 0;
 int initial_motor_speed = 55;  // Increased initial motor speed
 
 void setup() {
-  servo.attach(9); // servo pin 9 
+  servo.attach(6); // servo pin 9 
   Serial.begin(9600);
   previousTime = 0; 
   pinMode(enL, OUTPUT);
