@@ -100,7 +100,7 @@ try:
                     elif state == "GO TOWARD GREEN"
                     ...
                     
-                - Cách 2 là viết finite state machine
+                - Cách 2 là viết finite state machine (FSM)
                     class RobotFSM:
                         def __init__(self):
                             self.state = "SEARCHING"
