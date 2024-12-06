@@ -50,12 +50,18 @@ def compute_pid(error):
 
     return P + I + D
 
+def send_command(command, value=0):
+    data = struct.pack('cf', command.encode(), value)
+    arduino.write(data)
+    arduino.flush()
+    print(f"Sent command: {command}, value: {value}")
+
 def stop_robot():
-    arduino.write(struct.pack('f', -1.0))
+    send_command('S')
     print("Green detected, stopping the robot.")
 
 def rotate_robot():
-    arduino.write(struct.pack('f', 100.0))
+    send_command('R')
     print("Rotating to detect green.")
 
 def process_frame(frame):
@@ -107,7 +113,7 @@ try:
                     pid_output = compute_pid(error)
                     print(f"PID Output: {pid_output}")
 
-                    arduino.write(struct.pack('f', pid_output))
+                    send_command('P', pid_output)
                     received_pid = arduino.readline().decode().strip()
                     print(received_pid)
                     received_left = arduino.readline().decode().strip()
