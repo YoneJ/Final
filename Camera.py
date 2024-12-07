@@ -182,7 +182,7 @@ try:
 
         # Optionally, add a short delay to make the loop smoother
         time.sleep(0.1)
-        cv2.imshow('Green Detection with Boundary and Center', frame)
+        # cv2.imshow('Green Detection with Boundary and Center', frame)
 
 except KeyboardInterrupt:
     print("Stopped by user")
