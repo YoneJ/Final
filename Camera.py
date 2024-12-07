@@ -9,7 +9,7 @@ arduino = serial.Serial(port='/dev/ttyUSB0', baudrate=9600, timeout=0.1)
 time.sleep(2)  # Wait for the connection to be established
 
 # Adjusted HSV range for green
-lower_green = np.array([35, 100, 50])
+lower_green = np.array([35, 50, 50])
 upper_green = np.array([85, 255, 255])
 
 """ My idea: Đoạn này mai anh cap màn hình 2 tấm ảnh, 1 tấm xa 1 tấm gần rồi ném vào canva, chấm màu rồi đổi màu RGB -> HSV nhé
