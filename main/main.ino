@@ -19,6 +19,7 @@ int inR2 = 11;
 
 // Initial motor speed
 int initial_motor_speed = 80;
+int adjusted_speed = initial_motor_speed;
 
 // PID variables
 float PID_value = 0;  // PID correction value from Python
@@ -73,8 +74,20 @@ void loop() {
     Serial.print("PID value received: ");
     Serial.println(PID_value);
 
-    left_motor_speed = initial_motor_speed + PID_value;
-    right_motor_speed = initial_motor_speed - PID_value;
+  long distanceFront = get_front_distance();
+  Serial.print("Front Distance: ");
+  Serial.println(distanceFront);
+
+    int adjusted_speed = initial_motor_speed;
+    if (distanceFront < 10) {
+      adjusted_speed = map(distanceFront, 5, 10, 40, initial_motor_speed);
+      adjusted_speed = max(adjusted_speed, 30);
+    } else if (distanceFront < 20) {
+      adjusted_speed = map(distanceFront, 10, 20, 60, initial_motor_speed);
+    }
+
+    left_motor_speed = adjusted_speed + PID_value;
+    right_motor_speed = adjusted_speed - PID_value;
 
     left_motor_speed = constrain(left_motor_speed, 0, 150);
     right_motor_speed = constrain(right_motor_speed, 0, 150);
@@ -104,13 +117,11 @@ void loop() {
     Serial.print("right: ");
     Serial.println(right_motor_speed);
 
-  long distanceFront = get_front_distance();
-  Serial.println(distanceFront);
-
   if (distanceFront < obstacleThreshold) {
     servo.write(180);
     Serial.println("Obstacle detected, servo moved to 180°");
     Serial.println("Grab Done");
+
   }
   else {
     servo.write(90);

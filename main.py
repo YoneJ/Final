@@ -111,7 +111,7 @@ try:
                 cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
                 cv2.circle(frame, (center_x, center_y), 5, (0, 0, 255), -1)
             else:
-                print("No green object detected, switching to START state.")
+                print("No green object detected, switching to FOLLOW PATH state.")
                 transition(State.START)
 
         elif current_state == State.FOLLOWPATH:
