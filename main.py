@@ -98,6 +98,13 @@ try:
                 arduino.write(struct.pack('f', pid_output))
                 received_pid = arduino.readline().decode().strip()
                 print(received_pid)
+                # Listen for Arduino's state change message
+                if arduino.in_waiting > 0:
+                    message = arduino.readline().decode().strip()
+                    print(f"Message from Arduino: {message}")
+                    if message == "Grab Done":
+                        print("Arduino requested state change, transitioning to START")
+                        transition(State.START)
 
                 cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
                 cv2.circle(frame, (center_x, center_y), 5, (0, 0, 255), -1)
