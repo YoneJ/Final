@@ -16,7 +16,7 @@ if not cap.isOpened():
     print("Error: Could not open camera.")
     exit()
 
-Kp = 1.5
+Kp = 0.8
 Ki = 0.02
 Kd = 0.5
 
@@ -29,6 +29,7 @@ class State:
     START = "START"
     DETECT_GREEN = "DETECT_GREEN"
     TRACK = "TRACK"
+    FOLLOWPATH = "FOLLOW_PATH"
 
 current_state = State.START
 
@@ -104,7 +105,8 @@ try:
                     print(f"Message from Arduino: {message}")
                     if message == "Grab Done":
                         print("Arduino requested state change, transitioning to START")
-                        transition(State.START)
+                        transition(State.FOLLOWPATH)
+                        print("STATE: FOLLOW PATH")
 
                 cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
                 cv2.circle(frame, (center_x, center_y), 5, (0, 0, 255), -1)
@@ -112,7 +114,10 @@ try:
                 print("No green object detected, switching to START state.")
                 transition(State.START)
 
-        time.sleep(0.1)
+        elif current_state == State.FOLLOWPATH:
+            print("Follow A* Path")
+            arduino.write(struct.pack('f', -1.0))
+            time.sleep(0.1)
 
 except KeyboardInterrupt:
     print("Stopped by user")

@@ -6,7 +6,7 @@ HCSR04 frontSonar(51, 50);
 float previousTime_sona = 0.0;
 float sampling_rate_sona = 500;
 
-const int obstacleThreshold = 4; 
+const int obstacleThreshold = 3; 
 const int frontTrigPin = 51;
 const int frontEchoPin = 50;
 
@@ -18,7 +18,7 @@ int inR1 = 10; // control direction of the right motor
 int inR2 = 11;
 
 // Initial motor speed
-int initial_motor_speed = 60;
+int initial_motor_speed = 80;
 
 // PID variables
 float PID_value = 0;  // PID correction value from Python
@@ -76,8 +76,8 @@ void loop() {
     left_motor_speed = initial_motor_speed + PID_value;
     right_motor_speed = initial_motor_speed - PID_value;
 
-    left_motor_speed = constrain(left_motor_speed, 0, 120);
-    right_motor_speed = constrain(right_motor_speed, 0, 120);
+    left_motor_speed = constrain(left_motor_speed, 0, 150);
+    right_motor_speed = constrain(right_motor_speed, 0, 150);
 
     if (left_motor_speed > 0) {
       digitalWrite(inL1, HIGH);
@@ -110,6 +110,7 @@ void loop() {
   if (distanceFront < obstacleThreshold) {
     servo.write(180);
     Serial.println("Obstacle detected, servo moved to 180°");
+    Serial.println("Grab Done");
   }
   else {
     servo.write(90);
