@@ -13,13 +13,13 @@ import tf2_ros
 
 class PathFollower(Node):
     def __init__(self):
-        super().__init__('path_follower_node_lol')
+        super().__init__('path_follower_node')
 
         # Parameters
-        self.path = np.load('flipped_pathAsta.npy')  # Load saved path
-        self.grid_map = np.load('merged_grid.npy')  # Load grid map
+        self.path = np.load('path_lol.npy')  # Load saved path
+        self.grid_map = np.load('extended_grid_lol.npy')  # Load grid map
         self.grid_size = 0.04  # Grid resolution in meters per cell
-        self.pose = np.array([self.path[0][0] * self.grid_size, self.path[0][1] * self.grid_size, 0])  # Start pose based on the first path point
+        self.pose = np.array([self.path[0][0] * self.grid_size, self.path[0][1] * self.grid_size, 3.14])  # Start pose based on the first path point
         self.prev_scan = None  # Store the previous scan
         self.path_index = 0
         self.goal_tolerance = 0.4  # Tolerance for reaching a path point
@@ -32,10 +32,10 @@ class PathFollower(Node):
         self.scan_subscriber = self.create_subscription(
             LaserScan, '/scan', self.lidar_callback, 10)
         self.cmd_vel_publisher = self.create_publisher(Twist, '/cmd_vel', 10)
-        self.grid_map_publisher = self.create_publisher(OccupancyGrid, '/grid_map_lol', 10)
-        self.path_publisher = self.create_publisher(Marker, '/path_marker_lol', 10)
-        self.robot_marker_publisher = self.create_publisher(Marker, '/robot_marker_lol', 10)
-        self.ahead_point_publisher = self.create_publisher(Marker, '/robot_ahead_point_marker_lol', 10)
+        self.grid_map_publisher = self.create_publisher(OccupancyGrid, '/grid_map', 10)
+        self.path_publisher = self.create_publisher(Marker, '/path_marker', 10)
+        self.robot_marker_publisher = self.create_publisher(Marker, '/robot_marker', 10)
+        self.ahead_point_publisher = self.create_publisher(Marker, '/robot_ahead_point_marker', 10)
 
         # Timer to periodically publish the map and path
         self.create_timer(1.0, self.publish_grid_map)
@@ -45,11 +45,11 @@ class PathFollower(Node):
         self.create_timer(0.1, self.publish_transform)  # Publish TF at 10 Hz
 
         # Add the publisher for the closest point marker
-        self.closest_point_publisher = self.create_publisher(Marker, '/closest_point_marker_lol', 10)
+        self.closest_point_publisher = self.create_publisher(Marker, '/closest_point_marker', 10)
         self.create_timer(1.0, self.publish_closest_point_marker)
 
         #PID gains:
-        self.kp = 0.1
+        self.kp = 2.0
         self.ki = 0.0
         self.kd = 0.0
         
@@ -66,7 +66,7 @@ class PathFollower(Node):
         occupancy_grid = OccupancyGrid()
 
         # Header
-        occupancy_grid.header.frame_id = 'map_lol'
+        occupancy_grid.header.frame_id = 'map'
         occupancy_grid.header.stamp = self.get_clock().now().to_msg()
 
         # Map metadata
@@ -77,6 +77,8 @@ class PathFollower(Node):
         occupancy_grid.info.origin.position.x = 0.0
         occupancy_grid.info.origin.position.y = 0.0
         occupancy_grid.info.origin.position.z = 0.0
+        # occupancy_grid.info.origin.orientation.z = 1.571
+
 
         # Flatten and normalize the grid map to match OccupancyGrid format
         grid_data = (self.grid_map.flatten() * 100).astype(np.int8)  # Scale [0, 1] to [0, 100]
@@ -92,7 +94,7 @@ class PathFollower(Node):
         path_marker = Marker()
 
         # Header
-        path_marker.header.frame_id = 'map_lol'
+        path_marker.header.frame_id = 'map'
         path_marker.header.stamp = self.get_clock().now().to_msg()
 
         # Marker properties
@@ -119,9 +121,9 @@ class PathFollower(Node):
     def publish_robot_marker(self):
         # Create a Marker message for the robot position
         robot_marker = Marker()
-        robot_marker.header.frame_id = 'map_lol'
+        robot_marker.header.frame_id = 'map'
         robot_marker.header.stamp = self.get_clock().now().to_msg()
-        robot_marker.ns = 'robot_lol'
+        robot_marker.ns = 'robot'
         robot_marker.id = 1
         robot_marker.type = Marker.ARROW
         robot_marker.action = Marker.ADD
@@ -152,9 +154,9 @@ class PathFollower(Node):
 
         # Create a Marker message for the ahead point
         ahead_point_marker = Marker()
-        ahead_point_marker.header.frame_id = 'map_lol'
+        ahead_point_marker.header.frame_id = 'map'
         ahead_point_marker.header.stamp = self.get_clock().now().to_msg()
-        ahead_point_marker.ns = 'ahead_point_lol'
+        ahead_point_marker.ns = 'ahead_point'
         ahead_point_marker.id = 2
         ahead_point_marker.type = Marker.SPHERE
         ahead_point_marker.action = Marker.ADD
@@ -179,9 +181,9 @@ class PathFollower(Node):
         print(f"Closest point: {closest_point}, type: {type(closest_point)}")
         # Create a Marker message for the closest point
         closest_point_marker = Marker()
-        closest_point_marker.header.frame_id = 'map_lol'
+        closest_point_marker.header.frame_id = 'map'
         closest_point_marker.header.stamp = self.get_clock().now().to_msg()
-        closest_point_marker.ns = 'closest_point_lol'
+        closest_point_marker.ns = 'closest_point'
         closest_point_marker.id = 3
         closest_point_marker.type = Marker.SPHERE
         closest_point_marker.action = Marker.ADD
@@ -207,8 +209,8 @@ class PathFollower(Node):
 
         # Header
         transform.header.stamp = self.get_clock().now().to_msg()
-        transform.header.frame_id = 'map_lol'
-        transform.child_frame_id = 'odom_lol'
+        transform.header.frame_id = 'map'
+        transform.child_frame_id = 'odom'
 
         # Set the transformation based on the robot's pose
         transform.transform.translation.x = 1.0 # self.pose[0]
@@ -327,25 +329,24 @@ class PathFollower(Node):
         # y_ap = 0.8
         # return np.array([x_ap, y_ap])
         x,y,theta =  pose 
-        look_ahead_distance = 0.3
+        look_ahead_distance = 0.15
         x_ap = x + look_ahead_distance * np.cos(theta)
         y_ap = y + look_ahead_distance * np.sin(theta)
 
         return np.array([x_ap, y_ap])
 
-
     def find_closest_path_point(self, ahead_point):
-        ahead_point = np.array(ahead_point)  
-
-        self.get_logger().info(f"Path: {self.path}")
+        ahead_point = np.array(ahead_point)  # Ensure ahead_point is a numpy array
         self.get_logger().info(f"Ahead point: {ahead_point}")
-
-        distances = np.linalg.norm(self.path - ahead_point, axis=1)  
+    # Compute distances from the ahead point to all points in the path
+        distances = np.linalg.norm(self.path - ahead_point, axis=1)  # axis=1 ensures distance is calculated for each [x, y]
+        self.get_logger().info(f"Distance: {distances}")
+        self.get_logger().info(f"Path: {self.path}")
         closest_index = np.argmin(distances)  # Find the index of the closest point
-        closest_point = self.path[closest_index]  # Get the closest point
 
+        closest_point = self.path[closest_index]  # Get the closest point
         self.get_logger().info(f"Closest point: {closest_point} at index {closest_index}")
-        return closest_point, closest_index
+        return closest_point,closest_index
 
     
     def calculate_pid(self, error):
@@ -358,24 +359,25 @@ class PathFollower(Node):
         return pid_output
     
     def calculate_lateral_error(self, pose, closest_point, ahead_point):
+        look_ahead_distance = 0.15
         x_robot, y_robot, theta = pose
         x_closest, y_closest = closest_point
         x_ahead, y_ahead = ahead_point
 
-    # Compute vectors from robot to closest and ahead points
         dx_closest = x_closest - x_robot
         dy_closest = y_closest - y_robot
         dx_ahead = x_ahead - x_robot
         dy_ahead = y_ahead - y_robot
 
-    # Calculate the cross product of the two vectors
         cross_product = dx_ahead * dy_closest - dy_ahead * dx_closest
-        return cross_product
+        lateral_error = cross_product / look_ahead_distance
+
+        return lateral_error
 
 
 
     def control_robot(self):
-        if self.prev_scan is not None:          
+        if self.prev_scan is not None:
             ahead_point = self.get_ahead_point(self.pose)
             closest_point, _ = self.find_closest_path_point(ahead_point)
         
@@ -383,20 +385,24 @@ class PathFollower(Node):
             lateral_error = self.calculate_lateral_error(self.pose, closest_point, ahead_point)
         
         # Debugging print for lateral error
-        # print(f"Lateral error: {lateral_error}")
+            # print(f"Lateral error: {lateral_error}")
 
         # Compute angular velocity from PID
             angular_velocity = self.calculate_pid(lateral_error)
             angular_velocity = np.clip(angular_velocity, -1.0, 1.0)
-            linear_velocity = 0.1  
+            linear_velocity = 0.1  # You can adjust this value as needed for your robot's speed
 
         # Debugging print for PID output (angular velocity)
-        # print(f"PID output - Angular velocity: {angular_velocity}")
+            # print(f"PID output - Angular velocity: {angular_velocity}")
         
             twist_msg = Twist()
             twist_msg.linear.x = linear_velocity
             twist_msg.angular.z = angular_velocity
             self.cmd_vel_publisher.publish(twist_msg)
+
+
+
+
 
     def stop_robot(self):
         """
