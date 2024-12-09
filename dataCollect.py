@@ -35,7 +35,7 @@ class dataCollect(Node):
         if lidarXY.shape[0] > 0:
             # Save valid scan data to CSV and unsubscribe
             df = pd.DataFrame(lidarXY, columns=['x', 'y'])
-            df.to_csv('lidarFinal1.csv', index=False)
+            df.to_csv('lidarFinal4.csv', index=False)
             self.get_logger().info('Valid scan data saved to lidar.csv')
             
             # Unsubscribe to stop receiving further data
