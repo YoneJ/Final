@@ -6,7 +6,7 @@ HCSR04 frontSonar(51, 50);
 float previousTime_sona = 0.0;
 float sampling_rate_sona = 500;
 
-const int obstacleThreshold = 3; 
+const int obstacleThreshold = 4; 
 const int frontTrigPin = 51;
 const int frontEchoPin = 50;
 
@@ -18,7 +18,7 @@ int inR1 = 10; // control direction of the right motor
 int inR2 = 11;
 
 // Initial motor speed
-int initial_motor_speed = 80;
+int initial_motor_speed = 65;
 int adjusted_speed = initial_motor_speed;
 
 // PID variables
@@ -83,14 +83,14 @@ void loop() {
       adjusted_speed = map(distanceFront, 5, 10, 40, initial_motor_speed);
       adjusted_speed = max(adjusted_speed, 30);
     } else if (distanceFront < 20) {
-      adjusted_speed = map(distanceFront, 10, 20, 60, initial_motor_speed);
+      adjusted_speed = map(distanceFront, 10, 20, 50, initial_motor_speed);
     }
 
     left_motor_speed = adjusted_speed + PID_value;
     right_motor_speed = adjusted_speed - PID_value;
 
     left_motor_speed = constrain(left_motor_speed, 0, 150);
-    right_motor_speed = constrain(right_motor_speed, 0, 150);
+    right_motor_speed = constrain(right_motor_speed + 15, 0, 150);
 
     if (left_motor_speed > 0) {
       digitalWrite(inL1, HIGH);
