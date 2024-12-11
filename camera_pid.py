@@ -17,7 +17,7 @@ if not cap.isOpened():
     exit()
 
 # PID constants
-Kp = 0.0005
+Kp = 0.0003
 Ki = 0.000002
 Kd = 0.00006
 
@@ -95,7 +95,7 @@ try:
 
                 angular_velocity = compute_pid(error)
                 angular_velocity = np.clip(angular_velocity, -1.0, 1.0)
-                linear_velocity = 0.07
+                linear_velocity = 0.05
                 print(f"Angular velocity: {angular_velocity}")
                 # Differential steering
                 V_L = linear_velocity -  (angular_velocity*0.189)

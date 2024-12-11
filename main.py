@@ -16,9 +16,9 @@ if not cap.isOpened():
     print("Error: Could not open camera.")
     exit()
 
-Kp = 0.8
-Ki = 0.02
-Kd = 0.5
+Kp = 0.3
+Ki = 0.00
+Kd = 0.1
 
 previous_error = 0
 integral = 0
@@ -90,7 +90,7 @@ try:
                 center_y = y + h // 2
 
                 frame_center = frame.shape[1] // 2
-                error = (center_x - frame_center) / 10
+                error = (center_x - frame_center) / 100
                 print(f"Error: {error}")
 
                 pid_output = compute_pid(error)
@@ -123,4 +123,4 @@ except KeyboardInterrupt:
     print("Stopped by user")
 
 cap.release()
-cv2.destroyAllWindows()
+
