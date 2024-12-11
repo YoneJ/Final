@@ -18,7 +18,7 @@ if not cap.isOpened():
 # PID constants
 Kp = 0.0003
 Ki = 0.000002
-Kd = 0.00006
+Kd = 0.00008
 
 previous_error = 0
 integral_error = 0
@@ -57,7 +57,7 @@ def transition(new_state):
 try:
     while True:
         current_time = time.time()
-        if current_time - frame_last_processed_time >= 1.0:
+        if current_time - frame_last_processed_time >= 0.8:
             ret, frame = cap.read()
             if not ret:
                 print("Failed to grab frame")
