@@ -66,11 +66,11 @@ try:
             hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
             green_mask = cv2.inRange(hsv_frame, lower_green, upper_green)
 
-            if current_state == State.START:
-                print("State: START")
-                time.sleep(1)
-                arduino.write("0.25,-0.25\n".encode('utf-8')) #spinning around until seeing the green bottle           
-                if cv2.countNonZero(green_mask) > 300:
+            if current_state == State.START: 
+		print("State: START")
+		time.sleep(1) 
+                arduino.write("0.08,-0.08\n".encode('utf-8')) #spinning around until seeing the green bottle
+                if cv2.countNonZero(green_mask) > 0:
                     arduino.write("0.0,0.0\n".encode('utf-8'))
                     print("Green detected, stopping the robot.")
                     transition(State.DETECT_GREEN)
