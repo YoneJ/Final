@@ -16,9 +16,9 @@ if not cap.isOpened():
     exit()
 
 # PID constants
-Kp = 0.0003
-Ki = 0.000002
-Kd = 0.00006
+Kp = 0.0002
+Ki = 0.000001
+Kd = 0.00003
 
 previous_error = 0
 integral_error = 0
@@ -57,7 +57,7 @@ def transition(new_state):
 try:
     while True:
         current_time = time.time()
-        if current_time - frame_last_processed_time >= 0.5:
+        if current_time - frame_last_processed_time >= 0.1:
             ret, frame = cap.read()
             if not ret:
                 print("Failed to grab frame")
@@ -69,8 +69,8 @@ try:
             if current_state == State.START:
                 print("State: START")
                 time.sleep(1)
-                arduino.write("0.05,-0.05\n".encode('utf-8')) #spinning around until seeing the green bottle           
-                if cv2.countNonZero(green_mask) > 300:
+                arduino.write("0.1,-0.1\n".encode('utf-8')) #spinning around until seeing the green bottle           
+                if cv2.countNonZero(green_mask) > 50:
                     arduino.write("0.0,0.0\n".encode('utf-8'))
                     print("Green detected, stopping the robot.")
                     transition(State.DETECT_GREEN)
