@@ -51,33 +51,35 @@ def to_grid_indices(x, y, x_min, y_min, resolution):
     grid_y = int((y - y_min) / resolution)
     return grid_x, grid_y
 
-def plan_path(grid_map_file, x_min, y_min, resolution, current_pose, goal_coords):
-    grid_map = np.load(grid_map_file)
+def plan_path(grid_map, x_min, y_min, resolution, goal_coords):
+    # Get the current pose from PoseManager
+    start_point = PoseManager().get_pose()
 
-    start = to_grid_indices(current_pose[0], current_pose[1], x_min, y_min, resolution)
+    if start_point is None:
+        print("Error: Start pose not set!")
+        return None
+
+    print(f"Start Pose: {start_point}")  # Debugging line
+
+    # Convert start pose to grid coordinates
+    start = to_grid_indices(start_point[0], start_point[1], x_min, y_min, resolution)
     goal = to_grid_indices(goal_coords[0], goal_coords[1], x_min, y_min, resolution)
 
     path = astar(grid_map, start, goal)
-
-    if path:
-        return path
-    else:
-        print("No path found from start to goal.")
-        return None
+    return path
 
 # Example usage
-grid_map_file = 'map.npy'  # Replace with your .npy file path
+grid_map = 'map.npy'  # Replace with your .npy file path
 x_min = 0  # Minimum x-coordinate in real-world units
 y_min = 0  # Minimum y-coordinate in real-world units
 resolution = 0.03  # Resolution in real-world units per grid cell
 
 # Replace these with your actual start and goal coordinates in real-world units
-current_pose = PoseManager().get_pose()
-
+# start_point = PoseManager().get_pose() / resolution
 goal_coords = (3.0, 3.0)   # Example goal position (x, y)
 
 # Run the path planning function
-path = plan_path(grid_map_file, x_min, y_min, resolution, current_pose, goal_coords)
+path = plan_path(grid_map, x_min, y_min, resolution, goal_coords)
 
 if path:
     print("Path found:", path)
