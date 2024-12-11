@@ -25,7 +25,7 @@ class PathFollower(Node):
         self.path_index = 0
         self.goal_tolerance = 0.4  # Tolerance for reaching a path point
         self.ahead_distance = 0.5  # Distance to look ahead on the path
-        self.arduino = serial.Serial('/dev/ttyUSB0', baudrate=115200, timeout=0.1)
+        self.arduino = serial.Serial('/dev/ttyUSB1', baudrate=115200, timeout=0.1)
         # TF broadcaster for map -> odom
         self.tf_broadcaster = tf2_ros.TransformBroadcaster(self)
 
@@ -419,7 +419,7 @@ class PathFollower(Node):
         # Compute angular velocity from PID
             angular_velocity = self.calculate_pid(lateral_error)
             angular_velocity = np.clip(angular_velocity, -1.0, 1.0)
-            linear_velocity = 0.1  
+            linear_velocity = 0.05 
 
         # Debugging print for PID output (angular velocity)
             print(f"PID output - Angular velocity: {angular_velocity}")
