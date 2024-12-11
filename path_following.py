@@ -10,14 +10,16 @@ from nav_msgs.msg import OccupancyGrid
 from std_msgs.msg import Header
 from geometry_msgs.msg import Pose, Point, TransformStamped
 import tf2_ros
+from pose_manager import PoseManager
+
 
 class PathFollower(Node):
     def __init__(self):
         super().__init__('path_follower_node')
 
         # Parameters
-        self.path = np.load('path_lol.npy')  # Load saved path
-        self.grid_map = np.load('extended_grid_lol.npy')  # Load grid map
+        # self.path = np.load('.npy')  # Load saved path
+        self.grid_map = np.load('map.npy')  # Load grid map
         self.grid_size = 0.04  # Grid resolution in meters per cell
         self.pose = np.array([self.path[0][0] * self.grid_size, self.path[0][1] * self.grid_size, 3.14])  # Start pose based on the first path point
         self.prev_scan = None  # Store the previous scan
@@ -244,6 +246,7 @@ class PathFollower(Node):
             # Apply ICP to calculate the relative transformation
             delta_pose = self.icp(self.prev_scan, points)
             self.pose = self.update_pose(self.pose, delta_pose)
+            PoseManager().set_pose(self.pose)
             self.get_logger().info(f'Updated Pose: {self.pose}')
 
             # Publish the robot marker to visualize the position
@@ -400,9 +403,9 @@ class PathFollower(Node):
             twist_msg.angular.z = angular_velocity
             self.cmd_vel_publisher.publish(twist_msg)
 
-
-
-
+    @property
+    def pose(self):
+        return self._pose
 
     def stop_robot(self):
         """
