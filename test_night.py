@@ -16,9 +16,9 @@ if not cap.isOpened():
     exit()
 
 # PID constants
-Kp = 0.0002
-Ki = 0.000001
-Kd = 0.00003
+Kp = 0.0003
+Ki = 0.000002
+Kd = 0.00006
 
 previous_error = 0
 integral_error = 0
@@ -69,8 +69,8 @@ try:
             if current_state == State.START:
                 print("State: START")
                 time.sleep(1)
-                arduino.write("0.1,-0.1\n".encode('utf-8')) #spinning around until seeing the green bottle           
-                if cv2.countNonZero(green_mask) > 50:
+                arduino.write("0.25,-0.25\n".encode('utf-8')) #spinning around until seeing the green bottle           
+                if cv2.countNonZero(green_mask) > 300:
                     arduino.write("0.0,0.0\n".encode('utf-8'))
                     print("Green detected, stopping the robot.")
                     transition(State.DETECT_GREEN)
@@ -94,7 +94,7 @@ try:
                     center_x = x + w // 2
                     frame_center = frame.shape[1] // 2
 
-                    error = (frame_center - center_x)/10
+                    error = (frame_center - center_x)
                     print(f"Error: {error}")
 
                     angular_velocity = compute_pid(error)
@@ -121,7 +121,9 @@ try:
                 else:
                     print("No green object detected.")
                     arduino.write("0.0,0.0\n".encode('utf-8')) #stop
+                    transition(State.START)
             frame_last_processed_time = current_time
+
 except KeyboardInterrupt:
     print("Stopped by user")
 
