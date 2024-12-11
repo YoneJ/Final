@@ -16,10 +16,10 @@ class PathFollower(Node):
         super().__init__('path_follower_node')
 
         # Parameters
-        self.path = np.load('path7.npy')   # Load saved path
-        self.grid_map = np.load('map_final.npy') # Load grid map
-        self.grid_size = 0.03  # Grid resolution in meters per cell
-        self.pose = np.array([self.path[0][0] * self.grid_size, self.path[0][1] * self.grid_size, 0])  # Start pose based on the first path point
+        self.path = np.load('path_lol.npy')  # Load saved path
+        self.grid_map = np.load('extended_grid_lol.npy')  # Load grid map
+        self.grid_size = 0.04  # Grid resolution in meters per cell
+        self.pose = np.array([self.path[0][0] * self.grid_size, self.path[0][1] * self.grid_size, 3.14])  # Start pose based on the first path point
         self.prev_scan = None  # Store the previous scan
         self.path_index = 0
         self.goal_tolerance = 0.4  # Tolerance for reaching a path point
@@ -49,7 +49,7 @@ class PathFollower(Node):
         self.create_timer(1.0, self.publish_closest_point_marker)
 
         #PID gains:
-        self.kp = 2.2
+        self.kp = 2.0
         self.ki = 0.0
         self.kd = 0.0
         
@@ -113,8 +113,6 @@ class PathFollower(Node):
             path_point = Point()
             path_point.x = point[0] * self.grid_size  # Scale grid to world coordinates
             path_point.y = point[1] * self.grid_size
-            # path_point.x = float(point[0])   # Scale grid to world coordinates
-            # path_point.y = float(point[1]) 
             path_point.z = 0.0
             path_marker.points.append(path_point)
 
@@ -194,10 +192,8 @@ class PathFollower(Node):
         closest_point_marker.scale.x = 0.1  # Diameter of the sphere
         closest_point_marker.scale.y = 0.1
         closest_point_marker.scale.z = 0.1
-        closest_point_marker.pose.position.x = float(closest_point[0]) * self.grid_size
-        closest_point_marker.pose.position.y = float(closest_point[1]) * self.grid_size
-        # closest_point_marker.pose.position.x = float(closest_point[0]) 
-        # closest_point_marker.pose.position.y = float(closest_point[1]) 
+        closest_point_marker.pose.position.x = float(closest_point[0]) * 0.04
+        closest_point_marker.pose.position.y = float(closest_point[1]) * 0.04
         closest_point_marker.pose.position.z = 0.1  # Slightly above the ground
 
         print(f"Publishing marker at: ({closest_point_marker.pose.position.x}, {closest_point_marker.pose.position.y})")
@@ -258,7 +254,7 @@ class PathFollower(Node):
 
         self.prev_scan = self.current_scan
 
-    def icp(self, source, target, max_iterations=35, tolerance=1e-5):
+    def icp(self, source, target, max_iterations=25, tolerance=1e-3):
         """
         Perform ICP between source and target point clouds.
         """
@@ -341,17 +337,15 @@ class PathFollower(Node):
 
     def find_closest_path_point(self, ahead_point):
         ahead_point = np.array(ahead_point)  # Ensure ahead_point is a numpy array
-        # self.get_logger().info(f"Ahead point: {ahead_point}")
+        self.get_logger().info(f"Ahead point: {ahead_point}")
     # Compute distances from the ahead point to all points in the path
-        distances = np.linalg.norm(self.path*self.grid_size - ahead_point, axis=1)  # axis=1 ensures distance is calculated for each [x, y]
-        # distances = np.linalg.norm(self.path - ahead_point, axis=1)  # axis=1 ensures distance is calculated for each [x, y]
-
-        # self.get_logger().info(f"Distance: {distances}")
-        # self.get_logger().info(f"Path: {self.path}")
+        distances = np.linalg.norm(self.path - ahead_point, axis=1)  # axis=1 ensures distance is calculated for each [x, y]
+        self.get_logger().info(f"Distance: {distances}")
+        self.get_logger().info(f"Path: {self.path}")
         closest_index = np.argmin(distances)  # Find the index of the closest point
 
         closest_point = self.path[closest_index]  # Get the closest point
-        # self.get_logger().info(f"Closest point: {closest_point} at index {closest_index}")
+        self.get_logger().info(f"Closest point: {closest_point} at index {closest_index}")
         return closest_point,closest_index
 
     
@@ -367,34 +361,47 @@ class PathFollower(Node):
     def calculate_lateral_error(self, pose, closest_point, ahead_point):
         look_ahead_distance = 0.15
         x_robot, y_robot, theta = pose
-        print(f"Coordinate robot: x = {x_robot}, y = {y_robot}")
-        x_closest, y_closest = closest_point * self.grid_size
-        # x_closest, y_closest = closest_point 
-
-        print(f"Coordinate path: x = {x_closest}, y = {y_closest}")
+        x_closest, y_closest = closest_point
         x_ahead, y_ahead = ahead_point
-        print(f"Coordinate ahead point: x = {x_ahead}, y = {y_ahead}")
 
-    # Vectors in 2D space
-        v_ahead = np.array([x_ahead - x_robot, y_ahead - y_robot])  # Vector from robot to ahead point
-        
-        v_closest = np.array([x_closest - x_robot, y_closest - y_robot])  # Vector from robot to closest point
+        dx_closest = x_closest - x_robot
+        dy_closest = y_closest - y_robot
+        dx_ahead = x_ahead - x_robot
+        dy_ahead = y_ahead - y_robot
 
-        print(f"Vector ahead: {v_ahead}")
-        print(f"Vector closest: {v_closest}")
-
-    # Compute 2D cross product
-        cross_product = np.cross(v_ahead, v_closest)  # This gives the 2D equivalent cross product scalar value
-        print(f"Cross product value: {cross_product}")
-    # Normalize by the distance magnitude
-        distance_magnitude = np.linalg.norm(v_ahead)
-
-        if distance_magnitude != 0:
-            lateral_error = cross_product / distance_magnitude
-        else:
-            lateral_error = 0.0  # Avoid division by zero
+        cross_product = dx_ahead * dy_closest - dy_ahead * dx_closest
+        lateral_error = cross_product / look_ahead_distance
 
         return lateral_error
+
+
+
+    def control_robot(self):
+        if self.prev_scan is not None:
+            ahead_point = self.get_ahead_point(self.pose)
+            closest_point, _ = self.find_closest_path_point(ahead_point)
+        
+        # Calculate lateral error
+            lateral_error = self.calculate_lateral_error(self.pose, closest_point, ahead_point)
+        
+        # Debugging print for lateral error
+            # print(f"Lateral error: {lateral_error}")
+
+        # Compute angular velocity from PID
+            angular_velocity = self.calculate_pid(lateral_error)
+            angular_velocity = np.clip(angular_velocity, -1.0, 1.0)
+            linear_velocity = 0.1  # You can adjust this value as needed for your robot's speed
+
+        # Debugging print for PID output (angular velocity)
+            # print(f"PID output - Angular velocity: {angular_velocity}")
+        
+            twist_msg = Twist()
+            twist_msg.linear.x = linear_velocity
+            twist_msg.angular.z = angular_velocity
+            self.cmd_vel_publisher.publish(twist_msg)
+
+
+
 
 
     def stop_robot(self):
@@ -406,36 +413,6 @@ class PathFollower(Node):
         twist_msg.angular.z = 0.0
         self.cmd_vel_publisher.publish(twist_msg)
 
-    def control_robot(self):
-        if self.prev_scan is not None:
-            ahead_point = self.get_ahead_point(self.pose)
-            closest_point, _ = self.find_closest_path_point(ahead_point)
-        
-        # Calculate lateral error
-            lateral_error = self.calculate_lateral_error(self.pose, closest_point, ahead_point)
-        
-        # Debugging print for lateral error
-            print(f"Lateral error: {lateral_error}")
-
-        # Compute angular velocity from PID
-            angular_velocity = self.calculate_pid(lateral_error)
-            angular_velocity = np.clip(angular_velocity, -1.0, 1.0)
-            linear_velocity = 0.1  # You can adjust this value as needed for your robot's speed
-
-        # Debugging print for PID output (angular velocity)
-            print(f"PID output - Angular velocity: {angular_velocity}")
-        
-            twist_msg = Twist()
-            twist_msg.linear.x = linear_velocity
-            twist_msg.angular.z = angular_velocity
-            self.cmd_vel_publisher.publish(twist_msg)
-
-            distances = np.linalg.norm(self.path[-1]*self.grid_size - self.pose[:2])
-            # distances = np.linalg.norm(self.path[-1] - self.pose[:2])
-
-            if distances < 0.15:
-                self.stop_robot()
-            
 
 def main(args=None):
     rclpy.init(args=args)
