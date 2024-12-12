@@ -31,14 +31,14 @@ frame_last_processed_time = time.time()
 
 class State:
 
-    INIT = "INITSTATE"
+    INIT = "INIT_STATE"
     START = "START"
     DETECT_GREEN = "DETECT_GREEN"
     TRACK = "TRACK"
     PLANNING = "PATH_PLANNING"
     FOLLOWPATH = "PATH_FOLLOWING"
 
-current_state = State.START
+current_state = State.INIT
 
 def compute_pid(error):
         global integral_error
