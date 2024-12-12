@@ -54,13 +54,11 @@ def transition(new_state):
     start_time = time.time()
 
 def listen_for_arduino():
-    while True:
         message = arduino.readline().decode('utf-8').strip()
         if message == "done":
             print("Wrapped done, stop robot.")
             arduino.write("0.0,0.0\n".encode('utf-8')) #stop
             transition(State.FOLLOWPATH)    
-            break         
 
 
 try:
