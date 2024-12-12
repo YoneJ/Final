@@ -5,10 +5,10 @@ import time
 import struct
 import subprocess
 
-arduino = serial.Serial(port='/dev/ttyUSB0', baudrate=115200, timeout=0.1)
+arduino = serial.Serial(port='/dev/ttyUSB1', baudrate=115200, timeout=0.1)
 time.sleep(2)
-lower_green = np.array([35, 50, 50])
-upper_green = np.array([85, 255, 255])
+lower_green = np.array([45, 100, 100])
+upper_green = np.array([75, 255, 255])
 
 cap = cv2.VideoCapture(0)
 
