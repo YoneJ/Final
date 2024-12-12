@@ -6,8 +6,8 @@ import struct
 
 arduino = serial.Serial(port='/dev/ttyUSB0', baudrate=115200, timeout=0.1)
 time.sleep(2)
-lower_green = np.array([35, 50, 50])
-upper_green = np.array([85, 255, 255])
+lower_green = np.array([45, 100, 100])
+upper_green = np.array([75, 255, 255])
 
 cap = cv2.VideoCapture(0)
 
@@ -16,9 +16,9 @@ if not cap.isOpened():
     exit()
 
 # PID constants
-Kp = 0.00001
-Ki = 0.000001
-Kd = 0.000001
+Kp = 0.000023
+Ki = 0.000000
+Kd = 0.00000
 
 previous_error = 0
 integral_error = 0
@@ -68,8 +68,7 @@ try:
 
             if current_state == State.START:
                 print("State: START")
-                time.sleep(1)
-                # arduino.write("0.07,0.0\n".encode('utf-8')) #spinning around until seeing the green bottle           
+                arduino.write("0.0,0.15\n".encode('utf-8')) #spinning around until seeing the green bottle           
                 if cv2.countNonZero(green_mask) > 0:
                     arduino.write("0.0,0.0\n".encode('utf-8'))
                     print("Green detected, stopping the robot.")
