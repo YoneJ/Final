@@ -4,7 +4,7 @@ import serial
 import time
 import struct
 
-arduino = serial.Serial(port='/dev/cu.usbserial-1130', baudrate=115200, timeout=0.1)
+arduino = serial.Serial(port='/dev/ttyUSB1', baudrate=115200, timeout=0.1)
 time.sleep(2)
 lower_green = np.array([45, 100, 100])
 upper_green = np.array([75, 255, 255])
