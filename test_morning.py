@@ -16,9 +16,9 @@ if not cap.isOpened():
     exit()
 
 # PID constants
-Kp = 0.00003
-Ki = 0.000002
-Kd = 0.000002
+Kp = 0.00001
+Ki = 0.000001
+Kd = 0.000001
 
 previous_error = 0
 integral_error = 0
@@ -69,7 +69,7 @@ try:
             if current_state == State.START:
                 print("State: START")
                 time.sleep(1)
-                # arduino.write("0.07,-0.07\n".encode('utf-8')) #spinning around until seeing the green bottle           
+                # arduino.write("0.07,0.0\n".encode('utf-8')) #spinning around until seeing the green bottle           
                 if cv2.countNonZero(green_mask) > 0:
                     arduino.write("0.0,0.0\n".encode('utf-8'))
                     print("Green detected, stopping the robot.")
@@ -121,7 +121,7 @@ try:
                 else:
                     print("No green object detected.")
                     arduino.write("0.0,0.0\n".encode('utf-8')) #stop
-                    # transition(State.START)
+                    transition(State.START)
             frame_last_processed_time = current_time
 
 except KeyboardInterrupt:
