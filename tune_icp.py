@@ -50,9 +50,9 @@ class PathFollower(Node):
         self.create_timer(1.0, self.publish_closest_point_marker)
 
         #PID gains:
-        self.kp = 2.2
-        self.ki = 0.0
-        self.kd = 0.0
+        self.kp = 0.5
+        self.ki = 0.0000015
+        self.kd = 0.0025 
         
         #PID state variables:
         self.previous_error = 0.0
@@ -250,6 +250,7 @@ class PathFollower(Node):
             delta_pose = self.icp(self.prev_scan, points)
             self.pose = self.update_pose(self.pose, delta_pose)
             self.get_logger().info(f'Updated Pose: {self.pose}')
+            print("haha")
 
             # Publish the robot marker to visualize the position
             self.publish_robot_marker()
@@ -435,7 +436,7 @@ class PathFollower(Node):
             distances = np.linalg.norm(self.path[-1]*self.grid_size - self.pose[:2])
             # distances = np.linalg.norm(self.path[-1] - self.pose[:2])
 
-            if distances < 0.15:
+            if distances < 0.40:
                 self.stop_robot()
             
 
