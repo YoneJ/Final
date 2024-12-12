@@ -4,7 +4,7 @@ import serial
 import time
 import struct
 
-arduino = serial.Serial(port='/dev/ttyUSB1', baudrate=115200, timeout=0.1)
+arduino = serial.Serial(port='/dev/cu.usbserial-1130', baudrate=115200, timeout=0.1)
 time.sleep(2)
 lower_green = np.array([45, 100, 100])
 upper_green = np.array([75, 255, 255])
@@ -56,6 +56,7 @@ def transition(new_state):
 def listen_for_arduino():
         message = arduino.readline().decode('utf-8').strip()
         if message == "done":
+            
             arduino.write("0.0,0.0\n".encode('utf-8')) #stop
             print("Wrapped done, stop robot.")
             transition(State.FOLLOWPATH)    
