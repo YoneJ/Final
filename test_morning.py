@@ -54,17 +54,12 @@ def transition(new_state):
     start_time = time.time()
 
 def listen_for_arduino():
-    try:
-        # Check if there is data available
-        if arduino.in_waiting > 0:
-            message = arduino.readline().decode('utf-8', errors='ignore').strip()  # Ignore invalid UTF-8 characters
-            if message == "done":
-                print("Wrapped done, stop robot.")
-                arduino.write("0.0,0.0\n".encode('utf-8'))  # Stop the robot
-                transition(State.FOLLOW_PATH)  # Transition to FOLLOW_PATH state
-    except UnicodeDecodeError as e:
-        print(f"Error decoding message: {e}")
-    
+        message = arduino.readline().decode('utf-8').strip()
+        if message == "done":
+            
+            arduino.write("0.0,0.0\n".encode('utf-8')) #stop
+            print("Wrapped done, stop robot.")
+            transition(State.FOLLOWPATH)        
 
 
 try:
