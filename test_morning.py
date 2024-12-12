@@ -56,9 +56,9 @@ def transition(new_state):
 def listen_for_arduino():
         message = arduino.readline().decode('utf-8').strip()
         if message == "done":
-            
-            arduino.write("0.0,0.0\n".encode('utf-8')) #stop
             print("Wrapped done, stop robot.")
+
+            arduino.write("0.0,0.0\n".encode('utf-8')) #stop
             transition(State.FOLLOWPATH)    
 
 
