@@ -53,6 +53,15 @@ def transition(new_state):
     current_state = new_state
     start_time = time.time()
 
+def listen_for_arduino():
+    while True:
+        message = arduino.readline().decode('utf-8').strip()
+        if message == "done":
+            print("Wrapped done, stop robot.")
+            arduino.write("0.0,0.0\n".encode('utf-8')) #stop
+            transition(State.FOLLOWPATH)    
+            break         
+
 
 try:
     while True:
@@ -119,8 +128,10 @@ try:
                     cv2.circle(frame, (center_x, y + h // 2), 5, (0, 0, 255), -1)
                 else:
                     print("No green object detected.")
-                    arduino.write("0.0,0.0\n".encode('utf-8')) #stop
+                    arduino.write("0.0,0.0\n".encode('utf-8')) 
                     transition(State.START)
+                
+                listen_for_arduino()
             frame_last_processed_time = current_time
 
 except KeyboardInterrupt:
