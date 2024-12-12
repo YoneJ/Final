@@ -4,11 +4,13 @@ import serial
 import time
 import struct
 import subprocess
+import rclpy
+from rclpy.node import Node
 
 arduino = serial.Serial(port='/dev/ttyUSB1', baudrate=115200, timeout=0.1)
 time.sleep(2)
-lower_green = np.array([45, 100, 100])
-upper_green = np.array([75, 255, 255])
+lower_green = np.array([35, 50, 50])
+upper_green = np.array([85, 255, 255])
 
 cap = cv2.VideoCapture(0)
 
@@ -29,6 +31,7 @@ frame_last_processed_time = time.time()
 
 class State:
 
+    INIT = "INITSTATE"
     START = "START"
     DETECT_GREEN = "DETECT_GREEN"
     TRACK = "TRACK"
@@ -61,7 +64,7 @@ def listen_for_arduino():
         if message == "done":
             arduino.write("0.0,0.0\n".encode('utf-8'))
             print("Wrapped done, stop robot.")
-            transition(State.FOLLOWPATH)        
+            transition(State.PLANNING)        
 
 def init_state():
     """
@@ -103,9 +106,13 @@ try:
             hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
             green_mask = cv2.inRange(hsv_frame, lower_green, upper_green)
 
-            if current_state == State.START:
-                print("State: START")
+            if current_state == State.INIT:
+                print("State: INIT")
                 init_state()
+                transition(State.START)
+
+            elif current_state == State.START:
+                print("State: START")
                 arduino.write("0.0,0.15\n".encode('utf-8')) #spinning around until seeing the green bottle           
                 if cv2.countNonZero(green_mask) > 0:
                     arduino.write("0.0,0.0\n".encode('utf-8'))
@@ -155,10 +162,11 @@ try:
 
                     cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
                     cv2.circle(frame, (center_x, y + h // 2), 5, (0, 0, 255), -1)
+
                 else:
                     print("No green object detected.")
                     arduino.write("0.0,0.0\n".encode('utf-8')) 
-                    transition(State.PLANNING)
+                    transition(State.START)
                 
                 listen_for_arduino()
 
