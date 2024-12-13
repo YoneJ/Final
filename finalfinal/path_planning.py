@@ -12,7 +12,7 @@ class PathPlanningNode(Node):
         self.path_publisher = self.create_publisher(Path, '/planned_path', 10)
 
         # Parameters for map and resolution
-        self.grid_map = np.load('map_merge.npy')  # Replace with your actual map file
+        self.grid_map = np.load('mapfinalfinal.npy')  # Replace with your actual map file
         self.x_min = -2.0  # Minimum x-coordinate in real-world units
         self.y_min = -0.5  # Minimum y-coordinate in real-world units
         self.resolution = 0.03  # Resolution in real-world units per grid cell
