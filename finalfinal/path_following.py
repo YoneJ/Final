@@ -436,7 +436,7 @@ class PathFollower(Node):
             distances = np.linalg.norm(self.path[-1]*self.grid_size - self.pose[:2])
             # distances = np.linalg.norm(self.path[-1] - self.pose[:2])
 
-            if distances < 0.40:
+            if distances < 0.60:
                 self.stop_robot()
             
 
