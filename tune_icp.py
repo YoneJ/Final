@@ -17,8 +17,8 @@ class PathFollower(Node):
         super().__init__('path_follower_node')
 
         # Parameters
-        self.path = np.load('path7.npy')   # Load saved path
-        self.grid_map = np.load('map_final.npy') # Load grid map
+        self.path = np.load('pathasta.npy')   # Load saved path
+        self.grid_map = np.load('mapfinalfinal.npy') # Load grid map
         self.grid_size = 0.03  # Grid resolution in meters per cell
         self.pose = np.array([self.path[0][0] * self.grid_size, self.path[0][1] * self.grid_size, 0])  # Start pose based on the first path point
         self.prev_scan = None  # Store the previous scan
