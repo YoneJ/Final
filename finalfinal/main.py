@@ -7,7 +7,7 @@ import subprocess
 import rclpy
 from rclpy.node import Node
 
-arduino = serial.Serial(port='/dev/ttyUSB1', baudrate=115200, timeout=0.1)
+arduino = serial.Serial(port='/dev/ttyUSB0', baudrate=115200, timeout=0.1)
 time.sleep(2)
 lower_green = np.array([35, 50, 50])
 upper_green = np.array([85, 255, 255])
