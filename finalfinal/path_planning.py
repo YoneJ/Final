@@ -1,41 +1,39 @@
 import numpy as np
 import heapq
 from nav_msgs.msg import Path
-from geometry_msgs.msg import Pose2D, PoseStamped
+from geometry_msgs.msg import PoseStamped
 import rclpy
 from rclpy.node import Node
-from nav_msgs.msg import OccupancyGrid
 
 class PathPlanningNode(Node):
     def __init__(self):
         super().__init__('path_planning_node')
 
         self.path_publisher = self.create_publisher(Path, '/planned_path', 10)
-        self.pose_subscriber = self.create_subscription(
-            Pose2D,
-            '/pose',
-            self.pose_callback,
-            10
-        )
 
         # Parameters for map and resolution
-        self.grid_map = np.load('mapfinalfinal.npy')  # Replace with your actual map file
+        self.grid_map = np.load('map_merge.npy')  # Replace with your actual map file
         self.x_min = -2.0  # Minimum x-coordinate in real-world units
         self.y_min = -0.5  # Minimum y-coordinate in real-world units
         self.resolution = 0.03  # Resolution in real-world units per grid cell
 
+        self.start_coords = (-0.009, -0.012)  # Example start position (x, y)
         self.goal_coords = (0.5, 0.25)  # Example goal position (x, y)
 
         self.get_logger().info("Path Planning Node Initialized")
+        self.plan_path_once()
 
-    def pose_callback(self, pose_msg):
-        start_point = (pose_msg.x, pose_msg.y)
-        start = self.to_grid_indices(start_point[0], start_point[1])
-        print("Start point: ", start_point)
+    def to_grid_indices(self, x, y):
+        grid_x = int((x - self.x_min) / self.resolution)
+        grid_y = int((y - self.y_min) / self.resolution)
+        return grid_x, grid_y
 
-        print("Start point: ", start)
+    def plan_path_once(self):
+        start = self.to_grid_indices(self.start_coords[0], self.start_coords[1])
         goal = self.to_grid_indices(self.goal_coords[0], self.goal_coords[1])
-        print("Goal point: ", goal)
+
+        self.get_logger().info(f"Start point: {self.start_coords} -> {start}")
+        self.get_logger().info(f"Goal point: {self.goal_coords} -> {goal}")
 
         path = self.astar(self.grid_map, start, goal)
 
@@ -45,43 +43,13 @@ class PathPlanningNode(Node):
         else:
             self.get_logger().error("No path found!")
 
-    def to_grid_indices(self, x, y):
-        grid_x = int((x - self.x_min) / self.resolution)
-        grid_y = int((y - self.y_min) / self.resolution)
-        return grid_x, grid_y
-
-    def publish_grid_map(self):
-        """
-        Publish the grid map as an OccupancyGrid message.
-        """
-        occupancy_grid = OccupancyGrid()
-
-        # Header
-        occupancy_grid.header.frame_id = 'map'
-        occupancy_grid.header.stamp = self.get_clock().now().to_msg()
-
-        # Map metadata
-        occupancy_grid.info.resolution = self.grid_size  # Map resolution in meters per cell
-        occupancy_grid.info.width = self.grid_map.shape[1]
-        occupancy_grid.info.height = self.grid_map.shape[0]
-        occupancy_grid.info.origin = Pose2D()
-        occupancy_grid.info.origin.position.x = 0.0
-        occupancy_grid.info.origin.position.y = 0.0
-        occupancy_grid.info.origin.position.z = 0.0
-
-        # Flatten and normalize the grid map to match OccupancyGrid format
-        grid_data = (self.grid_map.flatten() * 100).astype(np.int8)  # Scale [0, 1] to [0, 100]
-        grid_data = np.clip(grid_data, 0, 100).astype(np.int8)  # Clamp to [0, 100]
-        occupancy_grid.data = [int(value) if 0 <= value <= 100 else -1 for value in grid_data]  # Use -1 for unknown cells
-
-        self.grid_map_publisher.publish(occupancy_grid)
+        # Shutdown the node after the task is done
+        rclpy.shutdown()
 
     def publish_path(self, path):
-        # Convert path to a Path message
         path_msg = Path()
         path_msg.header.frame_id = 'map'
 
-        # Collect path data for saving to a .npy file
         path_data = []
 
         for (grid_x, grid_y) in path:
@@ -91,16 +59,13 @@ class PathPlanningNode(Node):
             pose_stamped.pose.position.y = grid_y * self.resolution + self.y_min
             path_msg.poses.append(pose_stamped)
 
-            # Collect path data in grid coordinates for saving
             path_data.append([grid_x, grid_y])
 
-        # Publish the path message
         self.path_publisher.publish(path_msg)
 
-        # Save the path data to a .npy file
-        self.path = np.save('pathasta.npy', path_data)
-        self.get_logger().info("Path saved to 'path.npy'")
-        
+        np.save('pathasta.npy', np.array(path_data))  # Save path to file
+        self.get_logger().info("Path saved to 'pathasta.npy'")
+
     def astar(self, grid_map, start, goal):
         directions = [(0, 1), (1, 0), (0, -1), (-1, 0), (1, 1), (1, -1), (-1, 1), (-1, -1)]
         open_set = []
@@ -148,9 +113,6 @@ class PathPlanningNode(Node):
 def main(args=None):
     rclpy.init(args=args)
     node = PathPlanningNode()
-    rclpy.spin(node)
-    node.destroy_node()
-    rclpy.shutdown()
 
 
 if __name__ == '__main__':
