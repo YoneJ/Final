@@ -98,7 +98,7 @@ class PathPlanningNode(Node):
         self.path_publisher.publish(path_msg)
 
         # Save the path data to a .npy file
-        self.path = np.load('pathasta.npy', allow_pickle=True)
+        self.path = np.save('pathasta.npy', path_data)
         self.get_logger().info("Path saved to 'path.npy'")
         
     def astar(self, grid_map, start, goal):
