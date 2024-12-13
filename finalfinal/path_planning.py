@@ -17,8 +17,8 @@ class PathPlanningNode(Node):
         self.y_min = -0.5  # Minimum y-coordinate in real-world units
         self.resolution = 0.03  # Resolution in real-world units per grid cell
 
-        self.start_coords = (-0.009, -0.012)  # Example start position (x, y)
-        self.goal_coords = (0.5, 0.25)  # Example goal position (x, y)
+        self.start_coords = (0.0, 0.0)  # Example start position (x, y)
+        self.goal_coords = (1.2, 0.5)  # Example goal position (x, y)
 
         self.get_logger().info("Path Planning Node Initialized")
         self.plan_path_once()
