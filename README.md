@@ -151,6 +151,7 @@ The project structure is organized as follows:
     Run the main.ino on your arduino
     ```
 
+-- 
+## Output
 
-
-
+![IMG_0749](https://github.com/user-attachments/assets/ae33292e-6b3a-49bd-bde5-e47c9e0e326c)
