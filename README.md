@@ -20,7 +20,7 @@ This project performs the following key tasks:
 ## 📂 Source Code Structure
 
 The project structure is organized as follows:
-
+```
 ├── Individual_Task_algorithm.ipynb
 ├── Map Generate.ipynb
 ├── archives
@@ -133,19 +133,23 @@ The project structure is organized as follows:
 │   ├── test1.ino
 │   └── test1.py
 └── tune_icp.py
-
+```
 -- 
 ## 🛠️ How to Run
 
   - Clone the repo to your local devices
   - On raspberry pi:
+    ```
     python3 finalfinal/init_state.py
     python3 finalfinal/path_planning.py
     python3 finalfinal/path_following.py
+    ```
 
   - On arduino:
+    ```
     cd main
     Run the main.ino on your arduino
+    ```
 
 
 
